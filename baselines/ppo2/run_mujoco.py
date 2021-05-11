@@ -3,13 +3,15 @@ import argparse
 from baselines.common.cmd_util import mujoco_arg_parser
 from baselines import bench, logger
 
+
 def train(env_id, num_timesteps, seed, policy, r_ex_coef, r_in_coef, lr_alpha, lr_beta, reward_freq):
     from baselines.common import set_global_seeds
     from baselines.common.vec_env.vec_normalize import VecNormalize
     from baselines.ppo2 import ppo2
     from baselines.ppo2.policies import MlpPolicy, MlpPolicyIntrinsicReward
     import gym
-    import tensorflow as tf
+    import pybulletgym
+    import tensorflow.compat.v1 as tf
     from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
     ncpu = 1
     config = tf.ConfigProto(allow_soft_placement=True,
@@ -46,7 +48,7 @@ def train(env_id, num_timesteps, seed, policy, r_ex_coef, r_in_coef, lr_alpha, l
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', help='Environment ID', default='Walker2d-v2')
+    parser.add_argument('--env', help='Environment ID', default='HalfCheetahPyBulletEnv-v0')
     parser.add_argument('--seed', help='RNG seed', type=int, default=0)
     parser.add_argument('--policy', help='Policy architecture', choices=['mlp', 'mlp_int'], default='mlp_int')
     parser.add_argument('--num-timesteps', type=int, default=int(1E6))

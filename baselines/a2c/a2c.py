@@ -4,7 +4,7 @@ import time
 import joblib
 import logging
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from baselines import logger
 
 from baselines.common import set_global_seeds, explained_variance
