@@ -713,3 +713,73 @@ Logging to RUNS/exp_meta_cartpole_1
 | v_ex_ev          | 0.991    |
 | v_mix_ev         | 0.985    |
 -------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 313      |
+| gamelenmean      | 9.31     |
+| gamescoremean    | 9.31     |
+| nupdates         | 52       |
+| serial_timesteps | 106496   |
+| time_elapsed     | 342      |
+| total_timesteps  | 106496   |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.984    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 314      |
+| gamelenmean      | 9.31     |
+| gamescoremean    | 9.31     |
+| nupdates         | 53       |
+| serial_timesteps | 108544   |
+| time_elapsed     | 348      |
+| total_timesteps  | 108544   |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.983    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 314      |
+| gamelenmean      | 9.44     |
+| gamescoremean    | 9.44     |
+| nupdates         | 54       |
+| serial_timesteps | 110592   |
+| time_elapsed     | 355      |
+| total_timesteps  | 110592   |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 313      |
+| gamelenmean      | 9.37     |
+| gamescoremean    | 9.37     |
+| nupdates         | 55       |
+| serial_timesteps | 112640   |
+| time_elapsed     | 361      |
+| total_timesteps  | 112640   |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.984    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 313      |
+| gamelenmean      | 9.38     |
+| gamescoremean    | 9.38     |
+| nupdates         | 56       |
+| serial_timesteps | 114688   |
+| time_elapsed     | 368      |
+| total_timesteps  | 114688   |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.983    |
+-------------------------------
