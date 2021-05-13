@@ -174,11 +174,14 @@ class MlpPolicy(object):
 class MlpPolicyIntrinsicReward(object):
     def __init__(self, sess, ob_space, ac_space, nbatch, nsteps, reuse=False): #pylint: disable=W0613
         ob_shape = (nbatch,) + ob_space.shape
-        actdim = ac_space.shape[0]
+        try:
+            actdim = ac_space.shape[0]
+        except Exception:
+            actdim = 1
         with tf.variable_scope('policy', reuse=reuse):
             X = tf.placeholder(tf.float32, ob_shape, name='Ob') #obs
             activ = tf.tanh
-            logstd = tf.get_variable(name="logstd", shape=[1, actdim], initializer=tf.zeros_initializer())
+            #logstd = tf.get_variable(name="logstd", shape=[1, actdim], initializer=tf.zeros_initializer())
             h1 = activ(fc(X, 'v_mix_fc1', nh=64, init_scale=np.sqrt(2)))
             h2 = activ(fc(h1, 'v_mix_fc2', nh=64, init_scale=np.sqrt(2)))
             v_mix0 = fc(h2, 'v_mix', 1)[:,0]
@@ -197,10 +200,11 @@ class MlpPolicyIntrinsicReward(object):
             h2 = activ(fc(h1, 'v_ex_fc2', nh=64, init_scale=np.sqrt(2)))
             v_ex0 = fc(h2, 'v_ex', 1)[:,0]
 
-        pdparam = tf.concat([pi, pi * 0.0 + logstd], axis=1)
+        #pdparam = tf.concat([pi, pi * 0.0 + logstd], axis=1)
+        #pdparam = tf.concat([pi], axis=1)
 
         self.pdtype = make_pdtype(ac_space)
-        self.pd = self.pdtype.pdfromflat(pdparam)
+        self.pd = self.pdtype.pdfromflat(pi)
 
         a0 = self.pd.sample()
         neglogp0 = self.pd.neglogp(a0)
@@ -241,11 +245,12 @@ class MlpPolicyNew(object):
             h1 = activ(tf.nn.xw_plus_b(X, params['policy/pi_fc1/w:0'], params['policy/pi_fc1/b:0']))
             h2 = activ(tf.nn.xw_plus_b(h1, params['policy/pi_fc2/w:0'], params['policy/pi_fc2/b:0']))
             pi = tf.nn.xw_plus_b(h2, params['policy/pi/w:0'], params['policy/pi/b:0'])
-            logstd = params['policy/logstd:0']
+            #logstd = params['policy/logstd:0']
 
-        pdparam = tf.concat([pi, pi * 0.0 + logstd], axis=1)
+        #pdparam = tf.concat([pi, pi * 0.0 + logstd], axis=1)
+        #pdparam = tf.concat([pi], axis=1)
 
         self.pdtype = make_pdtype(ac_space)
-        self.pd = self.pdtype.pdfromflat(pdparam)
+        self.pd = self.pdtype.pdfromflat(pi)
 
         self.X = X

@@ -57,8 +57,9 @@ def main():
     parser.add_argument('--lr-alpha', type=float, default=3E-4)
     parser.add_argument('--lr-beta', type=float, default=1E-4)
     parser.add_argument('--reward-freq', type=int, default=20)
+    parser.add_argument('--log-dir', type=str, default='')
     args = parser.parse_args()
-    logger.configure()
+    logger.configure(dir=args.log_dir)
     train(args.env, num_timesteps=args.num_timesteps, seed=args.seed, policy=args.policy,
           r_ex_coef=args.r_ex_coef, r_in_coef=args.r_in_coef,
           lr_alpha=args.lr_alpha, lr_beta=args.lr_beta,

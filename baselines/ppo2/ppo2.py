@@ -102,6 +102,7 @@ class Model(object):
             if states is not None:
                 td_map[train_model.S] = states
                 td_map[train_model.M] = masks
+            #import ipdb; ipdb.set_trace()
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train],
                 td_map
@@ -159,11 +160,12 @@ class Runner(object):
         for _ in range(self.nsteps):
             ac, v_ex, v_mix, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
-            mb_ac.append(ac)
+            mb_ac.append(np.reshape(ac,[1,1]))
             mb_v_ex.append(v_ex)
             mb_v_mix.append(v_mix)
             mb_neglogpacs.append(neglogpacs)
             mb_dones.append(self.dones)
+            #import ipdb; ipdb.set_trace()
             obs, r_ex, self.dones, infos = self.env.step(ac)
             self.delay_r_ex += r_ex
             self.delay_step += 1
@@ -174,7 +176,7 @@ class Runner(object):
                 else:
                     r_ex[n] = 0
             mb_r_ex.append(r_ex)
-            r_in = self.model.intrinsic_reward(self.obs, ac)
+            r_in = self.model.intrinsic_reward(self.obs,np.reshape(ac,[1,1]))
             mb_r_in.append(r_in)
             self.ep_r_ex += r_ex
             self.ep_r_in += r_in
@@ -224,6 +226,7 @@ class Runner(object):
             mb_adv_mix[t] = lastgaelam_mix = delta_mix + self.gamma * self.lam * nextnonterminal * lastgaelam_mix
         mb_ret_ex = mb_adv_ex + mb_v_ex
         mb_ret_mix = mb_adv_mix + mb_v_mix
+        #import ipdb; ipdb.set_trace()
         return (*map(sf01, (mb_obs, mb_dones, mb_ac, mb_neglogpacs,
                             mb_r_ex, mb_r_in, mb_ret_ex, mb_ret_mix, mb_v_ex, mb_v_mix, td_mix)),
             mb_states, epinfos, ep_r_ex, ep_r_in, ep_len)
@@ -303,8 +306,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
                                 break
                             coef_mat[i][j] = coef
                             coef *= gamma * lam
-                    entropy, approxkl, clipfrac = model.train(obs[mbinds], obs, actions[mbinds], actions, neglogpacs[mbinds],
-                                None, masks[mbinds], r_ex, ret_ex[mbinds], v_ex[mbinds], td_mix,
+                    entropy, approxkl, clipfrac = model.train(obs[mbinds], obs, np.reshape(actions[mbinds],[-1]), actions, neglogpacs[mbinds],
+                               None, masks[mbinds], r_ex, ret_ex[mbinds], v_ex[mbinds], td_mix,
                                 v_mix[mbinds], coef_mat, cur_lr_alpha, cur_lr_beta, cur_cliprange)
         else: # recurrent version
             raise NotImplementedError
