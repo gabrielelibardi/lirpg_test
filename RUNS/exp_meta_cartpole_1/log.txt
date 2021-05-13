@@ -279,3 +279,199 @@ Logging to RUNS/exp_meta_cartpole_1
 | v_ex_ev          | 0.99     |
 | v_mix_ev         | 0.983    |
 -------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 313      |
+| gamelenmean      | 9.37     |
+| gamescoremean    | 9.37     |
+| nupdates         | 21       |
+| serial_timesteps | 43008    |
+| time_elapsed     | 139      |
+| total_timesteps  | 43008    |
+| v_ex_ev          | 0.99     |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 309      |
+| gamelenmean      | 9.31     |
+| gamescoremean    | 9.31     |
+| nupdates         | 22       |
+| serial_timesteps | 45056    |
+| time_elapsed     | 145      |
+| total_timesteps  | 45056    |
+| v_ex_ev          | 0.99     |
+| v_mix_ev         | 0.984    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 311      |
+| gamelenmean      | 9.45     |
+| gamescoremean    | 9.45     |
+| nupdates         | 23       |
+| serial_timesteps | 47104    |
+| time_elapsed     | 152      |
+| total_timesteps  | 47104    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 311      |
+| gamelenmean      | 9.39     |
+| gamescoremean    | 9.39     |
+| nupdates         | 24       |
+| serial_timesteps | 49152    |
+| time_elapsed     | 158      |
+| total_timesteps  | 49152    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 312      |
+| gamelenmean      | 9.3      |
+| gamescoremean    | 9.3      |
+| nupdates         | 25       |
+| serial_timesteps | 51200    |
+| time_elapsed     | 165      |
+| total_timesteps  | 51200    |
+| v_ex_ev          | 0.99     |
+| v_mix_ev         | 0.982    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 308      |
+| gamelenmean      | 9.35     |
+| gamescoremean    | 9.35     |
+| nupdates         | 26       |
+| serial_timesteps | 53248    |
+| time_elapsed     | 172      |
+| total_timesteps  | 53248    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.982    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 309      |
+| gamelenmean      | 9.45     |
+| gamescoremean    | 9.45     |
+| nupdates         | 27       |
+| serial_timesteps | 55296    |
+| time_elapsed     | 178      |
+| total_timesteps  | 55296    |
+| v_ex_ev          | 0.99     |
+| v_mix_ev         | 0.983    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 312      |
+| gamelenmean      | 9.38     |
+| gamescoremean    | 9.38     |
+| nupdates         | 28       |
+| serial_timesteps | 57344    |
+| time_elapsed     | 185      |
+| total_timesteps  | 57344    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 312      |
+| gamelenmean      | 9.43     |
+| gamescoremean    | 9.43     |
+| nupdates         | 29       |
+| serial_timesteps | 59392    |
+| time_elapsed     | 191      |
+| total_timesteps  | 59392    |
+| v_ex_ev          | 0.992    |
+| v_mix_ev         | 0.984    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 311      |
+| gamelenmean      | 9.4      |
+| gamescoremean    | 9.4      |
+| nupdates         | 30       |
+| serial_timesteps | 61440    |
+| time_elapsed     | 198      |
+| total_timesteps  | 61440    |
+| v_ex_ev          | 0.989    |
+| v_mix_ev         | 0.982    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 310      |
+| gamelenmean      | 9.29     |
+| gamescoremean    | 9.29     |
+| nupdates         | 31       |
+| serial_timesteps | 63488    |
+| time_elapsed     | 204      |
+| total_timesteps  | 63488    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.984    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 309      |
+| gamelenmean      | 9.31     |
+| gamescoremean    | 9.31     |
+| nupdates         | 32       |
+| serial_timesteps | 65536    |
+| time_elapsed     | 211      |
+| total_timesteps  | 65536    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.981    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 311      |
+| gamelenmean      | 9.44     |
+| gamescoremean    | 9.44     |
+| nupdates         | 33       |
+| serial_timesteps | 67584    |
+| time_elapsed     | 218      |
+| total_timesteps  | 67584    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.985    |
+-------------------------------
+-------------------------------
+| approxkl         | 0        |
+| clipfrac         | 0        |
+| entropy          | 0        |
+| fps              | 315      |
+| gamelenmean      | 9.25     |
+| gamescoremean    | 9.25     |
+| nupdates         | 34       |
+| serial_timesteps | 69632    |
+| time_elapsed     | 224      |
+| total_timesteps  | 69632    |
+| v_ex_ev          | 0.991    |
+| v_mix_ev         | 0.983    |
+-------------------------------
