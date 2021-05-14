@@ -50,6 +50,9 @@ class Model(object):
         LR_ALPHA = tf.placeholder(tf.float32, [], "LR_ALPHA")
         LR_BETA = tf.placeholder(tf.float32, [], "LR_BETA")
 
+        # SUMMARY
+        summary_adv_external =  tf.print("summary adv external:", tf.math.reduce_sum(ADV_EX), " ,shape: ", ADV_EX.shape, output_stream=sys.stdout)
+
         # Simulate GAE.
         delta_mix = r_in_coef * train_model.r_in + r_ex_coef * R_EX + TD_MIX
         adv_mix = tf.squeeze(tf.matmul(COEF_MAT, tf.reshape(delta_mix, [nbatch, 1])), [1])
@@ -131,8 +134,8 @@ class Model(object):
                 td_map[train_model.M] = masks
             # import ipdb; ipdb.set_trace()
             return sess.run(
-                [entropy, approxkl, clipfrac, policy_train, intrinsic_train, policy_loss_print_op,
-                 intrinsic_loss_print_op],
+                [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
+                 summary_adv_external, policy_loss_print_op, intrinsic_loss_print_op],
                 td_map
             )[:-2]
 
@@ -360,7 +363,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
