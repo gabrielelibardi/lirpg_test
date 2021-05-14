@@ -83,6 +83,8 @@ class Model(object):
         approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - OLDNEGLOGPAC))
         clipfrac = tf.reduce_mean(tf.to_float(tf.greater(tf.abs(ratio - 1.0), CLIPRANGE)))
         v_mix = train_model.v_mix
+        summary_10 = tf.print("summary value preds:", tf.math.reduce_sum(v_mix), " values: ", v_mix, output_stream=sys.stdout)
+
         v_mix_clipped = OLDV_MIX + tf.clip_by_value(v_mix - OLDV_MIX, - CLIPRANGE, CLIPRANGE)
         v_mix_loss1 = tf.square(v_mix - ret_mix)
         v_mix_loss2 = tf.square(v_mix_clipped - ret_mix)
@@ -150,7 +152,7 @@ class Model(object):
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
                  summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, summary_7, summary_8,
-                 summary_9, policy_loss_print_op, intrinsic_loss_print_op], td_map
+                 summary_9, summary_10, policy_loss_print_op, intrinsic_loss_print_op], td_map
             )[:-2]
 
         def save(save_path):
@@ -378,7 +380,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
