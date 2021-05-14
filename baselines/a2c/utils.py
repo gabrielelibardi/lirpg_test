@@ -37,7 +37,7 @@ def ortho_init(scale=1.0):
         q = u if u.shape == flat_shape else v # pick the one with the correct shape
         q = q.reshape(shape)
         # return (scale * q[:shape[0], :shape[1]]).astype(np.float32)
-        return (1.0).astype(np.float32)
+        return 1.0
     return _ortho_init
 
 def conv(x, scope, *, nf, rf, stride, pad='VALID', init_scale=1.0, data_format='NHWC'):
