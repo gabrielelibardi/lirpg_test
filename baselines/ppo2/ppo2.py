@@ -51,12 +51,12 @@ class Model(object):
         LR_BETA = tf.placeholder(tf.float32, [], "LR_BETA")
 
         # SUMMARY
-        summary_adv_external = tf.print("summary act:", tf.math.reduce_sum(A), " ,shape: ", A.shape, output_stream=sys.stdout)
-        summary_adv_external = tf.print("summary old_action_log_prob:", tf.math.reduce_sum(OLDNEGLOGPAC), " ,shape: ", OLDNEGLOGPAC.shape, output_stream=sys.stdout)
-        summary_adv_external = tf.print("summary ext_ret:", tf.math.reduce_sum(R_EX), " ,shape: ", R_EX.shape, output_stream=sys.stdout)
-        summary_adv_external = tf.print("summary adv external:", tf.math.reduce_sum(ADV_EX), " ,shape: ", ADV_EX.shape, output_stream=sys.stdout)
-        summary_adv_external = tf.print("summary TD:", tf.math.reduce_sum(TD_MIX), " ,shape: ", TD_MIX.shape, output_stream=sys.stdout)
-        summary_adv_external = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " ,shape: ", COEF_MAT.shape, output_stream=sys.stdout)
+        summary_1 = tf.print("summary act:", tf.math.reduce_sum(A), " ,shape: ", A.shape, output_stream=sys.stdout)
+        summary_2 = tf.print("summary old_action_log_prob:", tf.math.reduce_sum(OLDNEGLOGPAC), " ,shape: ", OLDNEGLOGPAC.shape, output_stream=sys.stdout)
+        summary_3 = tf.print("summary ext_ret:", tf.math.reduce_sum(R_EX), " ,shape: ", R_EX.shape, output_stream=sys.stdout)
+        summary_4 = tf.print("summary adv external:", tf.math.reduce_sum(ADV_EX), " ,shape: ", ADV_EX.shape, output_stream=sys.stdout)
+        summary_5 = tf.print("summary TD:", tf.math.reduce_sum(TD_MIX), " ,shape: ", TD_MIX.shape, output_stream=sys.stdout)
+        summary_6 = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " ,shape: ", COEF_MAT.shape, output_stream=sys.stdout)
 
         # Simulate GAE.
         delta_mix = r_in_coef * train_model.r_in + r_ex_coef * R_EX + TD_MIX
@@ -140,7 +140,7 @@ class Model(object):
             # import ipdb; ipdb.set_trace()
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
-                 summary_adv_external, policy_loss_print_op, intrinsic_loss_print_op],
+                 summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, policy_loss_print_op, intrinsic_loss_print_op],
                 td_map
             )[:-2]
 
@@ -368,7 +368,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
