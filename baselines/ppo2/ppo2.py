@@ -59,7 +59,7 @@ class Model(object):
         summary_6 = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " ,shape: ", COEF_MAT.shape, output_stream=sys.stdout)
 
         # Simulate GAE.
-        delta_mix = r_in_coef * r_in + r_ex_coef * R_EX + TD_MIX
+        delta_mix = r_in_coef * train_model.r_in + r_ex_coef * R_EX + TD_MIX
         adv_mix = tf.squeeze(tf.matmul(COEF_MAT, tf.reshape(delta_mix, [nbatch, 1])), [1])
         ret_mix = adv_mix + OLDV_MIX
         adv_mix_mean, adv_mix_var = tf.nn.moments(adv_mix, axes=0)
