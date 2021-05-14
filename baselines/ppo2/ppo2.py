@@ -60,6 +60,9 @@ class Model(object):
 
         # Simulate GAE.
         delta_mix = r_in_coef * train_model.r_in + r_ex_coef * R_EX + TD_MIX
+
+        summary_7 = tf.print("summary reward intrinsic:", tf.math.reduce_sum(train_model.r_in), " ,shape: ", train_model.r_in.shape, output_stream=sys.stdout)
+
         adv_mix = tf.squeeze(tf.matmul(COEF_MAT, tf.reshape(delta_mix, [nbatch, 1])), [1])
         ret_mix = adv_mix + OLDV_MIX
         adv_mix_mean, adv_mix_var = tf.nn.moments(adv_mix, axes=0)
@@ -141,7 +144,7 @@ class Model(object):
             # import ipdb; ipdb.set_trace()
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
-                 summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, policy_loss_print_op, intrinsic_loss_print_op],
+                 summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, summary_7, policy_loss_print_op, intrinsic_loss_print_op],
                 td_map
             )[:-2]
 
@@ -370,7 +373,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
