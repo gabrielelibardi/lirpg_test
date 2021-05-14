@@ -6,6 +6,8 @@ RUNS/
 .pytest_cache
 .DS_Store
 .idea
+*venv/*
+*env/*
 
 # Setuptools distribution and build folders.
 /dist/

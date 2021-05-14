@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import joblib
 import numpy as np
@@ -8,6 +9,7 @@ from baselines import logger
 from collections import deque
 from baselines.common import explained_variance
 import pickle
+
 
 def loadall(filename):
     result = []
@@ -19,6 +21,7 @@ def loadall(filename):
                 break
     return result
 
+
 def dump_list(list2dump, mydir):
     with open(mydir, "wb") as f:
         for element in list2dump:
@@ -27,7 +30,7 @@ def dump_list(list2dump, mydir):
 
 class Model(object):
     def __init__(self, *, policy, ob_space, ac_space, nbatch_act, nbatch_train,
-                nsteps, ent_coef, vf_coef, max_grad_norm, r_ex_coef, r_in_coef):
+                 nsteps, ent_coef, vf_coef, max_grad_norm, r_ex_coef, r_in_coef):
         sess = tf.get_default_session()
         nbatch = nbatch_act * nsteps
 
@@ -62,13 +65,17 @@ class Model(object):
         pg_mix_loss2 = -adv_mix * tf.clip_by_value(ratio, 1.0 - CLIPRANGE, 1.0 + CLIPRANGE)
         pg_mix_loss = tf.reduce_mean(tf.maximum(pg_mix_loss1, pg_mix_loss2))
         approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - OLDNEGLOGPAC))
-        clipfrac = tf.reduce_mean(tf.to_float(tf.greater(tf.abs(ratio- 1.0), CLIPRANGE)))
+        clipfrac = tf.reduce_mean(tf.to_float(tf.greater(tf.abs(ratio - 1.0), CLIPRANGE)))
         v_mix = train_model.v_mix
         v_mix_clipped = OLDV_MIX + tf.clip_by_value(v_mix - OLDV_MIX, - CLIPRANGE, CLIPRANGE)
         v_mix_loss1 = tf.square(v_mix - ret_mix)
         v_mix_loss2 = tf.square(v_mix_clipped - ret_mix)
         v_mix_loss = .5 * tf.reduce_mean(tf.maximum(v_mix_loss1, v_mix_loss2))
+
         policy_loss = pg_mix_loss - entropy * ent_coef + v_mix_loss * vf_coef
+        policy_loss_print_op = tf.print("policy loss:", policy_loss, "shape:", policy_loss.shape,
+                                        output_stream=sys.stdout)
+
         policy_params = tf.trainable_variables("policy")
         policy_grads = tf.gradients(policy_loss, policy_params)
         if max_grad_norm is not None:
@@ -98,6 +105,9 @@ class Model(object):
         v_ex_loss2 = tf.square(v_ex_clipped - RET_EX)
         v_ex_loss = .5 * tf.reduce_mean(tf.maximum(v_ex_loss1, v_ex_loss2))
         intrinsic_loss = pg_ex_loss + vf_coef * v_ex_loss
+        intrinsic_loss_print_op = tf.print("intrinsic loss:", intrinsic_loss, "shape:", intrinsic_loss.shape,
+                                           output_stream=sys.stdout)
+
         intrinsic_params = tf.trainable_variables("intrinsic")
         intrinsic_grads = tf.gradients(intrinsic_loss, intrinsic_params)
         if max_grad_norm is not None:
@@ -112,16 +122,17 @@ class Model(object):
                   r_ex, ret_ex, v_ex, td_mix, v_mix, coef_mat, lr_alpha, lr_beta, cliprange):
             adv_ex = ret_ex - v_ex
             adv_ex = (adv_ex - adv_ex.mean()) / (adv_ex.std() + 1e-8)
-            td_map = {train_model.X:obs, train_model.X_ALL:obs_all, policy_new.X:obs,
-                      A:actions, train_model.A_ALL:actions_all, OLDNEGLOGPAC:neglogpacs,
-                      R_EX:r_ex, ADV_EX:adv_ex, RET_EX:ret_ex, OLDV_EX:v_ex, OLDV_MIX:v_mix, TD_MIX:td_mix,
-                      COEF_MAT:coef_mat, CLIPRANGE:cliprange, LR_ALPHA:lr_alpha, LR_BETA:lr_beta}
+            td_map = {train_model.X: obs, train_model.X_ALL: obs_all, policy_new.X: obs,
+                      A: actions, train_model.A_ALL: actions_all, OLDNEGLOGPAC: neglogpacs,
+                      R_EX: r_ex, ADV_EX: adv_ex, RET_EX: ret_ex, OLDV_EX: v_ex, OLDV_MIX: v_mix, TD_MIX: td_mix,
+                      COEF_MAT: coef_mat, CLIPRANGE: cliprange, LR_ALPHA: lr_alpha, LR_BETA: lr_beta}
             if states is not None:
                 td_map[train_model.S] = states
                 td_map[train_model.M] = masks
-            #import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             return sess.run(
-                [entropy, approxkl, clipfrac, policy_train, intrinsic_train],
+                [entropy, approxkl, clipfrac, policy_train, intrinsic_train, policy_loss_print_op,
+                 intrinsic_loss_print_op],
                 td_map
             )[:-2]
 
@@ -146,7 +157,8 @@ class Model(object):
         self.initial_state = act_model.initial_state
         self.save = save
         self.load = load
-        tf.global_variables_initializer().run(session=sess) #pylint: disable=E1101
+        tf.global_variables_initializer().run(session=sess)  # pylint: disable=E1101
+
 
 class Runner(object):
 
@@ -171,18 +183,18 @@ class Runner(object):
         self.ep_len = np.zeros([nenv])
 
     def run(self):
-        mb_obs, mb_r_ex, mb_r_in, mb_ac, mb_v_ex, mb_v_mix, mb_dones, mb_neglogpacs = [],[],[],[],[],[],[],[]
+        mb_obs, mb_r_ex, mb_r_in, mb_ac, mb_v_ex, mb_v_mix, mb_dones, mb_neglogpacs = [], [], [], [], [], [], [], []
         mb_states = self.states
-        epinfos, ep_r_ex, ep_r_in, ep_len = [],[],[],[]
+        epinfos, ep_r_ex, ep_r_in, ep_len = [], [], [], []
         for _ in range(self.nsteps):
             ac, v_ex, v_mix, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
-            mb_ac.append(np.reshape(ac,[1,1]))
+            mb_ac.append(np.reshape(ac, [1, 1]))
             mb_v_ex.append(v_ex)
             mb_v_mix.append(v_mix)
             mb_neglogpacs.append(neglogpacs)
             mb_dones.append(self.dones)
-            #import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             obs, r_ex, self.dones, infos = self.env.step(ac)
             self.delay_r_ex += r_ex
             self.delay_step += 1
@@ -193,8 +205,8 @@ class Runner(object):
                 else:
                     r_ex[n] = 0
             mb_r_ex.append(r_ex)
-            #import ipdb; ipdb.set_trace()
-            r_in = self.model.intrinsic_reward(self.obs,np.reshape(ac,[1,1]))
+            # import ipdb; ipdb.set_trace()
+            r_in = self.model.intrinsic_reward(self.obs, np.reshape(ac, [1, 1]))
             mb_r_in.append(r_in)
             self.ep_r_ex += r_ex
             self.ep_r_in += r_in
@@ -204,13 +216,13 @@ class Runner(object):
                 if maybeepinfo: epinfos.append(maybeepinfo)
             for n, done in enumerate(self.dones):
                 if done:
-                    self.obs[n] = self.obs[n]*0
+                    self.obs[n] = self.obs[n] * 0
                     ep_r_ex.append(self.ep_r_ex[n])
                     ep_r_in.append(self.ep_r_in[n])
                     ep_len.append(self.ep_len[n])
-                    self.ep_r_ex[n], self.ep_r_in[n], self.ep_len[n] = 0,0,0
+                    self.ep_r_ex[n], self.ep_r_in[n], self.ep_len[n] = 0, 0, 0
             self.obs = obs
-        #batch of steps to batch of rollouts
+        # batch of steps to batch of rollouts
         mb_obs = np.asarray(mb_obs, dtype=self.obs.dtype)
         mb_ac = np.asarray(mb_ac)
         mb_r_ex = np.asarray(mb_r_ex, dtype=np.float32)
@@ -225,29 +237,30 @@ class Runner(object):
         mb_v_mix_next[:-1] = mb_v_mix[1:] * (1.0 - mb_dones[1:])
         mb_v_mix_next[-1] = last_v_mix * (1.0 - self.dones)
         td_mix = self.gamma * mb_v_mix_next - mb_v_mix
-        #discount/bootstrap off value fn
+        # discount/bootstrap off value fn
         mb_adv_ex = np.zeros_like(mb_r_ex)
         mb_adv_mix = np.zeros_like(mb_r_mix)
-        lastgaelam_ex, lastgaelam_mix = 0,0
+        lastgaelam_ex, lastgaelam_mix = 0, 0
         for t in reversed(range(self.nsteps)):
             if t == self.nsteps - 1:
                 nextnonterminal = 1.0 - self.dones
                 nextv_ex = last_v_ex
                 nextv_mix = last_v_mix
             else:
-                nextnonterminal = 1.0 - mb_dones[t+1]
-                nextv_ex = mb_v_ex[t+1]
-                nextv_mix = mb_v_mix[t+1]
+                nextnonterminal = 1.0 - mb_dones[t + 1]
+                nextv_ex = mb_v_ex[t + 1]
+                nextv_mix = mb_v_mix[t + 1]
             delta_ex = mb_r_ex[t] + self.gamma * nextv_ex * nextnonterminal - mb_v_ex[t]
             delta_mix = mb_r_mix[t] + self.gamma * nextv_mix * nextnonterminal - mb_v_mix[t]
             mb_adv_ex[t] = lastgaelam_ex = delta_ex + self.gamma * self.lam * nextnonterminal * lastgaelam_ex
             mb_adv_mix[t] = lastgaelam_mix = delta_mix + self.gamma * self.lam * nextnonterminal * lastgaelam_mix
         mb_ret_ex = mb_adv_ex + mb_v_ex
         mb_ret_mix = mb_adv_mix + mb_v_mix
-        #import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         return (*map(sf01, (mb_obs, mb_dones, mb_ac, mb_neglogpacs,
                             mb_r_ex, mb_r_in, mb_ret_ex, mb_ret_mix, mb_v_ex, mb_v_mix, td_mix)),
-            mb_states, epinfos, ep_r_ex, ep_r_in, ep_len)
+                mb_states, epinfos, ep_r_ex, ep_r_in, ep_len)
+
 
 def sf01(arr):
     """
@@ -256,22 +269,30 @@ def sf01(arr):
     s = arr.shape
     return arr.swapaxes(0, 1).reshape(s[0] * s[1], *s[2:])
 
+
 def constfn(val):
     def f(_):
         return val
+
     return f
 
-def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
-            vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
-            log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
-            save_interval=0, r_ex_coef=0, r_in_coef=1, lr_beta=1E-4, reward_freq=1):
 
-    if isinstance(lr_alpha, float): lr_alpha = constfn(lr_alpha)
-    else: assert callable(lr_alpha)
-    if isinstance(lr_beta, float): lr_beta = constfn(lr_beta)
-    else: assert callable(lr_beta)
-    if isinstance(cliprange, float): cliprange = constfn(cliprange)
-    else: assert callable(cliprange)
+def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
+          vf_coef=0.5, max_grad_norm=0.5, gamma=0.99, lam=0.95,
+          log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
+          save_interval=0, r_ex_coef=0, r_in_coef=1, lr_beta=1E-4, reward_freq=1):
+    if isinstance(lr_alpha, float):
+        lr_alpha = constfn(lr_alpha)
+    else:
+        assert callable(lr_alpha)
+    if isinstance(lr_beta, float):
+        lr_beta = constfn(lr_beta)
+    else:
+        assert callable(lr_beta)
+    if isinstance(cliprange, float):
+        cliprange = constfn(cliprange)
+    else:
+        assert callable(cliprange)
     total_timesteps = int(total_timesteps)
 
     nenvs = env.num_envs
@@ -280,9 +301,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
     nbatch = nenvs * nsteps
     nbatch_train = nbatch // nminibatches
 
-    make_model = lambda : Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
-                    nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-                    max_grad_norm=max_grad_norm, r_ex_coef=r_ex_coef, r_in_coef=r_in_coef)
+    make_model = lambda: Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs,
+                               nbatch_train=nbatch_train,
+                               nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
+                               max_grad_norm=max_grad_norm, r_ex_coef=r_ex_coef, r_in_coef=r_in_coef)
     if save_interval and logger.get_dir():
         import cloudpickle
         with open(osp.join(logger.get_dir(), 'make_model.pkl'), 'wb') as fh:
@@ -295,8 +317,8 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
     eprinbuf = deque(maxlen=100)
     tfirststart = time.time()
 
-    nupdates = total_timesteps//nbatch
-    for update in range(1, nupdates+1):
+    nupdates = total_timesteps // nbatch
+    for update in range(1, nupdates + 1):
         assert nbatch % nminibatches == 0
         nbatch_train = nbatch // nminibatches
         tstart = time.time()
@@ -304,27 +326,28 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
         cur_lr_alpha = lr_alpha(frac)
         cur_lr_beta = lr_beta(frac)
         cur_cliprange = cliprange(frac)
-        obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, ret_mix, v_ex, v_mix, td_mix, states,\
-        epinfos, ep_r_ex, ep_r_in, ep_len = runner.run() #pylint: disable=E0632
-        
+        obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, ret_mix, v_ex, v_mix, td_mix, states, \
+        epinfos, ep_r_ex, ep_r_in, ep_len = runner.run()  # pylint: disable=E0632
+
         ##### DUMMY TENSORS #####
         PIK = 'RUNS/dummy_data.dat'
         items = loadall(PIK)
-        obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, v_ex, v_mix, td_mix, inds =  items
-        
+        obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, v_ex, v_mix, td_mix, inds = items
+        actions = actions.reshape(-1, 1)
+
         #########################
-        
+
         epinfobuf.extend(epinfos)
         eprinbuf.extend(ep_r_in)
         mblossvals = []
-        if states is None: # nonrecurrent version
-            #inds = np.arange(nbatch)
+        if states is None:  # nonrecurrent version
+            #           inds = np.arange(nbatch)
             for _ in range(noptepochs):
-                #np.random.shuffle(inds)
+                #               np.random.shuffle(inds)
                 for start in range(0, nbatch, nbatch_train):
                     end = start + nbatch_train
                     mbinds = inds[start:end]
-                    #print(mbinds)
+                    # print(mbinds)
                     start = time.time()
                     coef_mat = np.zeros([nbatch_train, nbatch], "float32")
                     for i in range(nbatch_train):
@@ -334,23 +357,28 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
                                 break
                             coef_mat[i][j] = coef
                             coef *= gamma * lam
-                    
-                    print(time.time()-start) 
+
+                    # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    import ipdb; ipdb.set_trace()
-                    entropy, approxkl, clipfrac = model.train(obs[mbinds], obs, np.reshape(actions[mbinds],[-1]), actions, neglogpacs[mbinds],
-                               None, masks[mbinds], r_ex, ret_ex[mbinds], v_ex[mbinds], td_mix,
-                                v_mix[mbinds], coef_mat, cur_lr_alpha, cur_lr_beta, cur_cliprange)
-        else: # recurrent version
+                    entropy, approxkl, clipfrac, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                                                                    actions, neglogpacs[mbinds],
+                                                                    None, masks[mbinds], r_ex, ret_ex[mbinds],
+                                                                    v_ex[mbinds], td_mix,
+                                                                    v_mix[mbinds], coef_mat, cur_lr_alpha, cur_lr_beta,
+                                                                    cur_cliprange)
+                    import ipdb;
+                    ipdb.set_trace()
+
+        else:  # recurrent version
             raise NotImplementedError
 
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
         fps = int(nbatch / (tnow - tstart))
         if update % log_interval == 0 or update == 1:
-            logger.logkv("serial_timesteps", update*nsteps)
+            logger.logkv("serial_timesteps", update * nsteps)
             logger.logkv("nupdates", update)
-            logger.logkv("total_timesteps", update*nbatch)
+            logger.logkv("total_timesteps", update * nbatch)
             logger.logkv("fps", fps)
             logger.logkv('gamescoremean', safemean([epinfo['r'] for epinfo in epinfobuf]))
             logger.logkv('gamelenmean', safemean([epinfo['l'] for epinfo in epinfobuf]))
@@ -366,10 +394,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
         if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir():
             checkdir = osp.join(logger.get_dir(), 'checkpoints')
             os.makedirs(checkdir, exist_ok=True)
-            savepath = osp.join(checkdir, '%.5i'%update)
+            savepath = osp.join(checkdir, '%.5i' % update)
             print('Saving to', savepath)
             model.save(savepath)
     env.close()
+
 
 def safemean(xs):
     return np.nan if len(xs) == 0 else np.mean(xs)
