@@ -51,17 +51,17 @@ class Model(object):
         LR_BETA = tf.placeholder(tf.float32, [], "LR_BETA")
 
         # SUMMARY
-        summary_1 = tf.print("summary act:", tf.math.reduce_sum(A), " ,shape: ", A.shape, output_stream=sys.stdout)
-        summary_2 = tf.print("summary old_action_log_prob:", tf.math.reduce_sum(OLDNEGLOGPAC), " ,shape: ", OLDNEGLOGPAC.shape, output_stream=sys.stdout)
-        summary_3 = tf.print("summary ext_ret:", tf.math.reduce_sum(RET_EX), " ,shape: ", RET_EX.shape, output_stream=sys.stdout)
-        summary_4 = tf.print("summary adv external:", tf.math.reduce_sum(ADV_EX), " ,shape: ", ADV_EX.shape, output_stream=sys.stdout)
-        summary_5 = tf.print("summary TD:", tf.math.reduce_sum(TD_MIX), " ,shape: ", TD_MIX.shape, output_stream=sys.stdout)
-        summary_6 = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " ,shape: ", COEF_MAT.shape, output_stream=sys.stdout)
+        summary_1 = tf.print("summary act:", tf.math.reduce_sum(A), " values: ", A, output_stream=sys.stdout)
+        summary_2 = tf.print("summary old_action_log_prob:", tf.math.reduce_sum(OLDNEGLOGPAC), " values: ", OLDNEGLOGPAC, output_stream=sys.stdout)
+        summary_3 = tf.print("summary ext_ret:", tf.math.reduce_sum(RET_EX), " values: ", RET_EX, output_stream=sys.stdout)
+        summary_4 = tf.print("summary adv external:", tf.math.reduce_sum(ADV_EX), " values: ", ADV_EX, output_stream=sys.stdout)
+        summary_5 = tf.print("summary TD:", tf.math.reduce_sum(TD_MIX), " values: ", TD_MIX, output_stream=sys.stdout)
+        summary_6 = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " values: ", COEF_MAT, output_stream=sys.stdout)
 
         # Simulate GAE.
         delta_mix = r_in_coef * train_model.r_in + r_ex_coef * R_EX + TD_MIX
 
-        summary_7 = tf.print("summary reward intrinsic:", tf.math.reduce_sum(train_model.r_in), " ,shape: ", train_model.r_in.shape, output_stream=sys.stdout)
+        summary_7 = tf.print("summary reward intrinsic:", tf.math.reduce_sum(train_model.r_in), " values: ", train_model.r_in, output_stream=sys.stdout)
 
         adv_mix = tf.squeeze(tf.matmul(COEF_MAT, tf.reshape(delta_mix, [nbatch, 1])), [1])
         ret_mix = adv_mix + OLDV_MIX
@@ -70,11 +70,11 @@ class Model(object):
 
         neglogpac = train_model.pd.neglogp(A)
 
-        summary_8 = tf.print("summary action log probs:", tf.math.reduce_sum(neglogpac), " ,shape: ", neglogpac, output_stream=sys.stdout)
+        summary_8 = tf.print("summary action log probs:", tf.math.reduce_sum(neglogpac), " values: ", neglogpac, output_stream=sys.stdout)
 
         entropy = tf.reduce_mean(train_model.pd.entropy())
 
-        summary_9 = tf.print("summary entropy:", tf.math.reduce_sum(entropy), " ,shape: ", entropy, output_stream=sys.stdout)
+        summary_9 = tf.print("summary entropy:", tf.math.reduce_sum(entropy), " values: ", entropy, output_stream=sys.stdout)
 
         ratio = tf.exp(OLDNEGLOGPAC - neglogpac)
         pg_mix_loss1 = -adv_mix * ratio
