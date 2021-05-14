@@ -38,7 +38,7 @@ def ortho_init(scale=1.0):
         q = q.reshape(shape)
 
         aaa = (scale * q[:shape[0], :shape[1]]).astype(np.float32)
-        return np.ones(aaa.shape)
+        return np.ones(aaa.shape).astype(np.float32)
     return _ortho_init
 
 def conv(x, scope, *, nf, rf, stride, pad='VALID', init_scale=1.0, data_format='NHWC'):
