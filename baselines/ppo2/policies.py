@@ -177,7 +177,7 @@ class MlpPolicyIntrinsicReward(object):
         try:
             actdim = ac_space.shape[0]
         except Exception:
-            actdim = 1
+            actdim = ac_space.n
         with tf.variable_scope('policy', reuse=reuse):
             X = tf.placeholder(tf.float32, ob_shape, name='Ob') #obs
             activ = tf.tanh
@@ -190,7 +190,7 @@ class MlpPolicyIntrinsicReward(object):
             pi = fc(h2, 'pi', actdim, init_scale=0.01)
         with tf.variable_scope('intrinsic', reuse=reuse):
             X_ALL = tf.placeholder(tf.float32, (None,) + ob_space.shape, name='Ob_all') #obs
-            A_ALL = tf.placeholder(tf.float32, [None, actdim], name='Ac_all') #obs
+            A_ALL = tf.placeholder(tf.float32, [None, 1], name='Ac_all') #obs
             INPUT = tf.concat([X_ALL, A_ALL], axis=1)
             activ = tf.tanh
             h1 = activ(fc(INPUT, 'intrinsic_fc1', nh=64, init_scale=np.sqrt(2)))

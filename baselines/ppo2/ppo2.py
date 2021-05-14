@@ -7,6 +7,23 @@ import tensorflow.compat.v1 as tf
 from baselines import logger
 from collections import deque
 from baselines.common import explained_variance
+import pickle
+
+def loadall(filename):
+    result = []
+    with open(filename, "rb") as f:
+        while True:
+            try:
+                result.append(pickle.load(f))
+            except EOFError:
+                break
+    return result
+
+def dump_list(list2dump, mydir):
+    with open(mydir, "wb") as f:
+        for element in list2dump:
+            pickle.dump(element, f)
+
 
 class Model(object):
     def __init__(self, *, policy, ob_space, ac_space, nbatch_act, nbatch_train,
@@ -176,6 +193,7 @@ class Runner(object):
                 else:
                     r_ex[n] = 0
             mb_r_ex.append(r_ex)
+            #import ipdb; ipdb.set_trace()
             r_in = self.model.intrinsic_reward(self.obs,np.reshape(ac,[1,1]))
             mb_r_in.append(r_in)
             self.ep_r_ex += r_ex
@@ -288,16 +306,26 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
         cur_cliprange = cliprange(frac)
         obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, ret_mix, v_ex, v_mix, td_mix, states,\
         epinfos, ep_r_ex, ep_r_in, ep_len = runner.run() #pylint: disable=E0632
+        
+        ##### DUMMY TENSORS #####
+        PIK = 'RUNS/dummy_data.dat'
+        items = loadall(PIK)
+        obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, v_ex, v_mix, td_mix, inds =  items
+        
+        #########################
+        
         epinfobuf.extend(epinfos)
         eprinbuf.extend(ep_r_in)
         mblossvals = []
         if states is None: # nonrecurrent version
-            inds = np.arange(nbatch)
+            #inds = np.arange(nbatch)
             for _ in range(noptepochs):
-                np.random.shuffle(inds)
+                #np.random.shuffle(inds)
                 for start in range(0, nbatch, nbatch_train):
                     end = start + nbatch_train
                     mbinds = inds[start:end]
+                    #print(mbinds)
+                    start = time.time()
                     coef_mat = np.zeros([nbatch_train, nbatch], "float32")
                     for i in range(nbatch_train):
                         coef = 1.0
@@ -306,6 +334,10 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
                                 break
                             coef_mat[i][j] = coef
                             coef *= gamma * lam
+                    
+                    print(time.time()-start) 
+                    dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
+                    import ipdb; ipdb.set_trace()
                     entropy, approxkl, clipfrac = model.train(obs[mbinds], obs, np.reshape(actions[mbinds],[-1]), actions, neglogpacs[mbinds],
                                None, masks[mbinds], r_ex, ret_ex[mbinds], v_ex[mbinds], td_mix,
                                 v_mix[mbinds], coef_mat, cur_lr_alpha, cur_lr_beta, cur_cliprange)
