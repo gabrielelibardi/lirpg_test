@@ -80,6 +80,10 @@ class Model(object):
         pg_mix_loss1 = -adv_mix * ratio
         pg_mix_loss2 = -adv_mix * tf.clip_by_value(ratio, 1.0 - CLIPRANGE, 1.0 + CLIPRANGE)
         pg_mix_loss = tf.reduce_mean(tf.maximum(pg_mix_loss1, pg_mix_loss2))
+
+        summary_12 = tf.print("summary action loss:", tf.math.reduce_sum(pg_mix_loss), " values: ", pg_mix_loss, output_stream=sys.stdout)
+
+
         approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - OLDNEGLOGPAC))
         clipfrac = tf.reduce_mean(tf.to_float(tf.greater(tf.abs(ratio - 1.0), CLIPRANGE)))
         v_mix = train_model.v_mix
@@ -89,6 +93,8 @@ class Model(object):
         v_mix_loss1 = tf.square(v_mix - ret_mix)
         v_mix_loss2 = tf.square(v_mix_clipped - ret_mix)
         v_mix_loss = .5 * tf.reduce_mean(tf.maximum(v_mix_loss1, v_mix_loss2))
+        summary_11 = tf.print("summary value loss:", tf.math.reduce_sum(v_mix_loss), " values: ", v_mix_loss, output_stream=sys.stdout)
+
 
         policy_loss = pg_mix_loss - entropy * ent_coef + v_mix_loss * vf_coef
         policy_loss_print_op = tf.print("policy loss:", policy_loss, "shape:", policy_loss.shape,
@@ -152,7 +158,7 @@ class Model(object):
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
                  summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, summary_7, summary_8,
-                 summary_9, summary_10, policy_loss_print_op, intrinsic_loss_print_op], td_map
+                 summary_9, summary_10, summary_11, summary_12, policy_loss_print_op, intrinsic_loss_print_op], td_map
             )[:-2]
 
         def save(save_path):
@@ -380,7 +386,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
