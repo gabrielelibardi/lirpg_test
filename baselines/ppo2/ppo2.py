@@ -59,7 +59,6 @@ class Model(object):
         summary_6 = tf.print("summary coef matrix:", tf.math.reduce_sum(COEF_MAT), " ,shape: ", COEF_MAT.shape, output_stream=sys.stdout)
 
         # Simulate GAE.
-        r_in = tf.ones_like(train_model.r_in)
         delta_mix = r_in_coef * r_in + r_ex_coef * R_EX + TD_MIX
         adv_mix = tf.squeeze(tf.matmul(COEF_MAT, tf.reshape(delta_mix, [nbatch, 1])), [1])
         ret_mix = adv_mix + OLDV_MIX
@@ -68,9 +67,6 @@ class Model(object):
 
         neglogpac = train_model.pd.neglogp(A)
         entropy = tf.reduce_mean(train_model.pd.entropy())
-        neglogpac = tf.ones_like(neglogpac)
-        entropy = tf.ones_like(entropy)
-        
 
         ratio = tf.exp(OLDNEGLOGPAC - neglogpac)
         pg_mix_loss1 = -adv_mix * ratio
@@ -79,7 +75,6 @@ class Model(object):
         approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - OLDNEGLOGPAC))
         clipfrac = tf.reduce_mean(tf.to_float(tf.greater(tf.abs(ratio - 1.0), CLIPRANGE)))
         v_mix = train_model.v_mix
-        v_mix = tf.ones_like(v_mix)
         v_mix_clipped = OLDV_MIX + tf.clip_by_value(v_mix - OLDV_MIX, - CLIPRANGE, CLIPRANGE)
         v_mix_loss1 = tf.square(v_mix - ret_mix)
         v_mix_loss2 = tf.square(v_mix_clipped - ret_mix)
@@ -113,8 +108,7 @@ class Model(object):
         pg_ex_loss2 = -ADV_EX * tf.clip_by_value(ratio_new, 1.0 - CLIPRANGE, 1.0 + CLIPRANGE)
         pg_ex_loss = tf.reduce_mean(tf.maximum(pg_ex_loss1, pg_ex_loss2))
         v_ex = train_model.v_ex
-        v_ex = tf.ones_like(v_ex)
-        
+
         v_ex_clipped = OLDV_EX + tf.clip_by_value(v_ex - OLDV_EX, - CLIPRANGE, CLIPRANGE)
         v_ex_loss1 = tf.square(v_ex - RET_EX)
         v_ex_loss2 = tf.square(v_ex_clipped - RET_EX)
