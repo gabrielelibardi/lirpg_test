@@ -192,6 +192,7 @@ class MlpPolicyIntrinsicReward(object):
             X_ALL = tf.placeholder(tf.float32, (None,) + ob_space.shape, name='Ob_all') #obs
             A_ALL = tf.placeholder(tf.float32, [None, 1], name='Ac_all') #obs
             INPUT = tf.concat([X_ALL, A_ALL], axis=1)
+            #INPUT= tf.Print(INPUT, [INPUT, tf.reduce_sum(A_ALL), tf.reduce_sum(X_ALL)], 'INPUT')
             activ = tf.tanh
             h1 = activ(fc(INPUT, 'intrinsic_fc1', nh=64, init_scale=np.sqrt(2)))
             h2 = activ(fc(h1, 'intrinsic_fc2', nh=64, init_scale=np.sqrt(2)))
@@ -227,7 +228,7 @@ class MlpPolicyIntrinsicReward(object):
         self.A_ALL = A_ALL
         self.pi = pi
         self.v_ex = v_ex0
-        self.r_in = r_in0
+        self.r_in = tf.Print(r_in0, [tf.reduce_sum(r_in0), tf.reduce_sum(A_ALL)], 'SUMMARY A_ALL')
         self.v_mix = v_mix0
         self.step = step
         self.value = value

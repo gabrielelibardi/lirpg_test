@@ -140,6 +140,8 @@ class Model(object):
         intrinsic_grads_and_vars = list(zip(intrinsic_grads, intrinsic_params))
         intrinsic_trainer = tf.train.AdamOptimizer(learning_rate=LR_BETA, epsilon=1E-5)
         intrinsic_train = intrinsic_trainer.apply_gradients(intrinsic_grads_and_vars)
+        intrinsic_para_print_op = tf.print("intrinsic parameters:", sum([tf.reduce_sum(para) for para in intrinsic_params])
+,'---------------------------------', output_stream=sys.stdout)
 
         all_params = tf.global_variables()
 
@@ -158,7 +160,7 @@ class Model(object):
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
                  summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, summary_7, summary_8,
-                 summary_9, summary_10, summary_11, summary_12, policy_loss_print_op, intrinsic_loss_print_op], td_map
+                 summary_9, summary_10, summary_11, summary_12, policy_loss_print_op, intrinsic_loss_print_op,    intrinsic_para_print_op], td_map
             )[:-2]
 
         def save(save_path):
@@ -368,6 +370,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
         if states is None:  # nonrecurrent version
             #           inds = np.arange(nbatch)
             for _ in range(noptepochs):
+                #import ipdb; ipdb.set_trace()
                 #               np.random.shuffle(inds)
                 for start in range(0, nbatch, nbatch_train):
                     end = start + nbatch_train
@@ -386,7 +389,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,
