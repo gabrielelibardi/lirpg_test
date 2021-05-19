@@ -102,14 +102,18 @@ class Model(object):
 
         policy_params = tf.trainable_variables("policy")
         policy_grads = tf.gradients(policy_loss, policy_params)
+        policy_grad_print_op = tf.print("policy grads:", sum([tf.reduce_sum(grad) for grad in policy_grads]),                           output_stream=sys.stdout)
         if max_grad_norm is not None:
             policy_grads, policy_grad_norm = tf.clip_by_global_norm(policy_grads, max_grad_norm)
         policy_grads_and_vars = list(zip(policy_grads, policy_params))
         policy_trainer = tf.train.AdamOptimizer(learning_rate=LR_ALPHA, epsilon=1e-5)
+        policy_para_print_op1 = tf.print("policy parameters before:", sum([tf.reduce_sum(para) for para in policy_params]),             output_stream=sys.stdout)
         policy_train = policy_trainer.apply_gradients(policy_grads_and_vars)
-
+        policy_para_print_op2 = tf.print("policy parameters after:",  sum([tf.reduce_sum(para) for para in policy_params]),             output_stream=sys.stdout)
         beta1_power, beta2_power = policy_trainer._get_beta_accumulators()
         policy_params_new = {}
+        #policy_para_print_op1 = tf.print("policy parameters before:", sum([tf.reduce_sum(para) for para in policy_params])
+        #,'---------------------------------', output_stream=sys.stdout)
         for var, grad in zip(policy_params, policy_grads):
             lr_ = LR_ALPHA * tf.sqrt(1 - beta2_power) / (1 - beta1_power)
             m, v = policy_trainer.get_slot(var, 'm'), policy_trainer.get_slot(var, 'v')
@@ -117,14 +121,13 @@ class Model(object):
             v = v + (tf.square(tf.stop_gradient(grad)) - v) * (1 - .999)
             policy_params_new[var.name] = var - m * lr_ / (tf.sqrt(v) + 1E-5)
         policy_new = train_model.policy_new_fn(policy_params_new, ob_space, ac_space, nbatch_train, nsteps)
-
+        policy_params_new_2 = tf.trainable_variables("policy_new")
         neglogpac_new = policy_new.pd.neglogp(A)
         ratio_new = tf.exp(OLDNEGLOGPAC - neglogpac_new)
         pg_ex_loss1 = -ADV_EX * ratio_new
         pg_ex_loss2 = -ADV_EX * tf.clip_by_value(ratio_new, 1.0 - CLIPRANGE, 1.0 + CLIPRANGE)
         pg_ex_loss = tf.reduce_mean(tf.maximum(pg_ex_loss1, pg_ex_loss2))
         v_ex = train_model.v_ex
-
         v_ex_clipped = OLDV_EX + tf.clip_by_value(v_ex - OLDV_EX, - CLIPRANGE, CLIPRANGE)
         v_ex_loss1 = tf.square(v_ex - RET_EX)
         v_ex_loss2 = tf.square(v_ex_clipped - RET_EX)
@@ -160,7 +163,7 @@ class Model(object):
             return sess.run(
                 [entropy, approxkl, clipfrac, policy_train, intrinsic_train,
                  summary_1, summary_2, summary_3, summary_4, summary_5, summary_6, summary_7, summary_8,
-                 summary_9, summary_10, summary_11, summary_12, policy_loss_print_op, intrinsic_loss_print_op,    intrinsic_para_print_op], td_map
+                 summary_9, summary_10, summary_11, summary_12, policy_loss_print_op, intrinsic_loss_print_op,    intrinsic_para_print_op, policy_para_print_op1, policy_para_print_op2, policy_grad_print_op], td_map
             )[:-2]
 
         def save(save_path):
@@ -361,6 +364,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
         items = loadall(PIK)
         obs, masks, actions, neglogpacs, r_ex, r_in, ret_ex, adv_ex, v_ex, v_mix, td_mix, inds = items
         actions = actions.reshape(-1, 1)
+        print('SUM OBS', np.sum(obs))
 
         #########################
 
@@ -389,7 +393,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr_alpha,
 
                     # print(time.time()-start)
                     dump_list([coef_mat], 'RUNS/dummy_data_out.dat')
-                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
+                    entropy, approxkl, clipfrac, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = model.train(obs[mbinds], obs, np.reshape(actions[mbinds], [-1]),
                                                                     actions, neglogpacs[mbinds],
                                                                     None, masks[mbinds], r_ex, ret_ex[mbinds],
                                                                     v_ex[mbinds], td_mix,

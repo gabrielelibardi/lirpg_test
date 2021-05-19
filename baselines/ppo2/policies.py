@@ -228,7 +228,7 @@ class MlpPolicyIntrinsicReward(object):
         self.A_ALL = A_ALL
         self.pi = pi
         self.v_ex = v_ex0
-        self.r_in = tf.Print(r_in0, [tf.reduce_sum(r_in0), tf.reduce_sum(A_ALL)], 'SUMMARY A_ALL')
+        self.r_in = tf.Print(r_in0, [tf.reduce_sum(r_in0), tf.reduce_sum(A_ALL), tf.reduce_sum(X_ALL)], 'SUMMARY A_ALL')
         self.v_mix = v_mix0
         self.step = step
         self.value = value
